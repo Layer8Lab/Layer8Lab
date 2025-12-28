@@ -2,35 +2,58 @@
 # Dependencies
 node_modules/
 
-# Environment variables
-.env
-
-# Build artifacts and logs (from package-lock.json and build processes)
-package-lock.json
+# Logs and temp files
 *.log
+*.tmp
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Environment
+.env
+.env.local
+*.env.*
 
-# Runtime and coverage reports
-coverage/
-htmlcov/
-*.coverage
-
-# IDE specific files
+# Editors
 .vscode/
 .idea/
 
+# Build artifacts
+dist/
+build/
+target/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
 # Compressed files
 *.zip
-*.tar
 *.gz
+*.tar
 *.tgz
-*.rar
-*.7z
 *.bz2
 *.xz
+*.7z
+*.rar
 *.zst
 *.lz4
 *.lzh
@@ -45,5 +68,4 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
 ```

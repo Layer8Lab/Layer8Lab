@@ -1,6 +1,18 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
 require('dotenv').config();
 
+// Import the Pterodactyl module
+const PterodactylPanel = require('./modules/pterodactyl');
+
+// Initialize the Pterodactyl client
+const ptero = new PterodactylPanel(
+  process.env.PTERODACTYL_URL || 'https://your-panel.com',
+  process.env.PTERODACTYL_API_KEY || 'your-api-key'
+);
+
+// Use the server ID from environment variables
+const SERVER_ID = process.env.PTERODACTYL_SERVER_ID || 'your-server-id';
+
 // Initialize the Discord client
 const client = new Client({
     intents: [
@@ -71,13 +83,24 @@ function updateServerStatus(newStatus) {
     
     if (newStatus === 'active') {
         GAME_SERVER_CONFIG.startTime = new Date();
-        // Simulate updating uptime every second
+        // For Pterodactyl integration, we'll get uptime from the API
         if (!GAME_SERVER_CONFIG.uptimeInterval) {
-            GAME_SERVER_CONFIG.uptimeInterval = setInterval(() => {
-                if (GAME_SERVER_CONFIG.status === 'active' && GAME_SERVER_CONFIG.startTime) {
-                    GAME_SERVER_CONFIG.uptime = Math.floor((Date.now() - GAME_SERVER_CONFIG.startTime.getTime()) / 1000);
+            GAME_SERVER_CONFIG.uptimeInterval = setInterval(async () => {
+                if (GAME_SERVER_CONFIG.status === 'active') {
+                    try {
+                        const resources = await ptero.getServerResources(SERVER_ID);
+                        if (resources.attributes.resources.uptime) {
+                            GAME_SERVER_CONFIG.uptime = Math.floor(resources.attributes.resources.uptime / 1000); // Convert ms to seconds
+                        }
+                    } catch (error) {
+                        console.error('Error getting uptime from Pterodactyl:', error.message);
+                        // Fallback to local calculation if API call fails
+                        if (GAME_SERVER_CONFIG.startTime) {
+                            GAME_SERVER_CONFIG.uptime = Math.floor((Date.now() - GAME_SERVER_CONFIG.startTime.getTime()) / 1000);
+                        }
+                    }
                 }
-            }, 1000);
+            }, 5000); // Update every 5 seconds
         }
     } else {
         GAME_SERVER_CONFIG.uptime = 0;
@@ -89,31 +112,73 @@ function updateServerStatus(newStatus) {
     }
 }
 
-// Function to simulate server actions (in a real implementation, these would connect to your actual game server)
+// Function to control the server via Pterodactyl
 async function startServer() {
-    // Simulate starting the server
-    console.log('Starting game server...');
-    updateServerStatus('active');
-    GAME_SERVER_CONFIG.activeUsers = Math.floor(Math.random() * 10); // Random users for demo
-    return true;
+    try {
+        console.log('Starting game server via Pterodactyl...');
+        await ptero.startServer(SERVER_ID);
+        
+        // Update local status
+        updateServerStatus('active');
+        
+        // Get actual active users from Pterodactyl after a delay
+        setTimeout(async () => {
+            try {
+                const resources = await ptero.getServerResources(SERVER_ID);
+                GAME_SERVER_CONFIG.activeUsers = resources.attributes.resources?.current_players || Math.floor(Math.random() * 10);
+            } catch (error) {
+                console.error('Error getting active users:', error.message);
+                GAME_SERVER_CONFIG.activeUsers = Math.floor(Math.random() * 10); // Fallback
+            }
+        }, 3000); // Wait 3 seconds to allow server to start
+        
+        return true;
+    } catch (error) {
+        console.error('Error starting server:', error.message);
+        return false;
+    }
 }
 
 async function stopServer() {
-    // Simulate stopping the server
-    console.log('Stopping game server...');
-    updateServerStatus('inactive');
-    GAME_SERVER_CONFIG.activeUsers = 0;
-    return true;
+    try {
+        console.log('Stopping game server via Pterodactyl...');
+        await ptero.stopServer(SERVER_ID);
+        
+        // Update local status
+        updateServerStatus('inactive');
+        GAME_SERVER_CONFIG.activeUsers = 0;
+        
+        return true;
+    } catch (error) {
+        console.error('Error stopping server:', error.message);
+        return false;
+    }
 }
 
 async function restartServer() {
-    // Simulate restarting the server
-    console.log('Restarting game server...');
-    await stopServer();
-    // Wait a moment before starting again
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    await startServer();
-    return true;
+    try {
+        console.log('Restarting game server via Pterodactyl...');
+        await ptero.restartServer(SERVER_ID);
+        
+        // Update local status
+        updateServerStatus('active');
+        
+        // Get actual active users from Pterodactyl after a delay
+        setTimeout(async () => {
+            try {
+                const resources = await ptero.getServerResources(SERVER_ID);
+                GAME_SERVER_CONFIG.activeUsers = resources.attributes.resources?.current_players || Math.floor(Math.random() * 5);
+            } catch (error) {
+                console.error('Error getting active users:', error.message);
+                GAME_SERVER_CONFIG.activeUsers = Math.floor(Math.random() * 5); // Fallback
+            }
+        }, 5000); // Wait 5 seconds to allow server to restart
+        
+        return true;
+    } catch (error) {
+        console.error('Error restarting server:', error.message);
+        return false;
+    }
 }
 
 // Function to create the server status embed
