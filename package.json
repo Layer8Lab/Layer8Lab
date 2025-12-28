@@ -1,0 +1,18 @@
+{
+  "name": "discord-game-server-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that controls a game server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {},
+  "keywords": ["discord", "bot", "gameserver"],
+  "author": "Discord Bot Developer",
+  "license": "MIT"
+}
