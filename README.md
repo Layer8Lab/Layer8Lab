@@ -108,7 +108,27 @@ The server status embed shows:
 
 ## Integration with Real Game Server
 
-To connect this bot to an actual game server, you would need to replace the mock functions (`startServer`, `stopServer`, `restartServer`) with actual implementations that communicate with your game server using appropriate protocols (SSH, RCON, REST API, etc.).
+This bot now includes built-in integration with Pterodactyl Panel, allowing you to control game servers hosted on Pterodactyl directly from Discord. The integration includes:
+
+- Start, stop, and restart commands for your Pterodactyl-hosted game servers
+- Real-time status monitoring
+- Uptime tracking from the server
+- Active player count display
+
+### Pterodactyl Configuration
+
+To use the Pterodactyl integration:
+
+1. Add your Pterodactyl panel details to the `.env` file:
+   ```
+   PTERODACTYL_URL=https://your-panel.com
+   PTERODACTYL_API_KEY=your_pterodactyl_api_key_here
+   PTERODACTYL_SERVER_ID=your_server_identifier
+   ```
+
+2. Make sure your Pterodactyl API key has the necessary permissions to manage your game server.
+
+The bot will now use the Pterodactyl API to control your game server instead of the mock functions.
 
 ## License
 
